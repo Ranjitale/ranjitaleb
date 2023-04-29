@@ -33,8 +33,17 @@ passport.use(new GoogleStrategy({
     // Find or create the user in the database
     const existingUser = await User.findOne({ email: profile.emails[0].value});
     if (existingUser) {
+      (req,res)=>{
+
+        res.redirect('/blogs')
+      }
       return done(null, existingUser);
+      
+      
+      
+      
     }
+
     const newUser = new User({
         googleId: profile.id,
         displayName: profile.displayName,
@@ -45,7 +54,7 @@ passport.use(new GoogleStrategy({
     });
     await newUser.save();
     done(null, newUser);
-    console.log(User)
+    console.log(profile.firstName,profile.lastName)
   } catch (err) {
     done(err, null);
   }
@@ -73,13 +82,20 @@ app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile',"email"] }));
 
  app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login' }),
+  passport.authenticate('google',{ failureRedirect: '/auth/google/callback' }),
   (req, res) => {
   res.redirect('/');
   }
   );
  
+ 
+  app.get('/blogs', (req, res) => {
+    // Render the dashboard page for authenticated users
+    res.send('this is blogs.')
+  });
+ 
   app.get('/logout', (req, res) => {
+    
     req.session.destroy((err) => {
       if (err) {
         console.log(err);
@@ -88,11 +104,19 @@ app.get('/auth/google',
       }
     });
   });
-//   app.get('/logout', (req, res) => {
-//   req.logout();
-//   res.redirect('/');
-//   });
-  
+  // app.get('/logout', (req, res) => {
+  //   req.session.  
+  //   destroy((err)=>{
+  //       if(err) {
+  //           console.log(err)
+  //       }
+  //       else{
+  //           res.redirect('/');
+  //       }
+  //   })
+ 
+  // });
+
   // Start the server
   const port = process.env.PORT || 3001;
   app.listen(port, () => console.log(`Server started on port ${port}`));
